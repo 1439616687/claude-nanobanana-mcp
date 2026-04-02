@@ -26,7 +26,7 @@ const modelField = z
   .describe(
     "Which Nano Banana model to use. " +
     "'gemini-3.1-flash-image-preview' (Nano Banana 2): fast, 4K, 512 support, High thinking, image search, up to 14 ref images. Best for speed, high-volume generation, and quick iteration. " +
-    "'gemini-3-pro-image-preview' (Nano Banana Pro): premium, up to 11 ref images. Best for complex compositions, faithful text rendering, and photorealistic scenes. " +
+    "'gemini-3-pro-image-preview' (Nano Banana Pro): premium, built-in always-on thinking, up to 11 ref images, 9 aspect ratios only (no extreme ratios like 1:4, 1:8, 4:1, 8:1, 21:9). Best for complex compositions, faithful text rendering, and photorealistic scenes. " +
     "AUTO-INFERENCE: speed/volume/thumbnails/drafts -> Nano Banana 2, complex scene/text rendering/photorealism -> Nano Banana Pro. " +
     "Default: gemini-3.1-flash-image-preview."
   );
@@ -40,7 +40,8 @@ const aspectRatioField = z
     "Instagram post -> '4:5', YouTube thumbnail -> '16:9', logo/icon/avatar -> '1:1', " +
     "ultrawide/cinematic -> '21:9', portrait photo -> '2:3' or '3:4', " +
     "landscape photo -> '3:2' or '4:3'. " +
-    "All 14 options: 1:1, 1:4, 1:8, 2:3, 3:2, 3:4, 4:1, 4:3, 4:5, 5:4, 8:1, 9:16, 16:9, 21:9. " +
+    "All 14 options: 1:1, 1:4, 1:8, 2:3, 3:2, 3:4, 4:1, 4:3, 4:5, 5:4, 8:1, 9:16, 16:9, 21:9 (Nano Banana 2). " +
+    "Nano Banana Pro supports 9 only: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9. " +
     "Default: '1:1'."
   );
 
@@ -67,8 +68,9 @@ const thinkingLevelField = z
     "How much internal reasoning the model uses before generating. " +
     "'minimal': faster, suitable for straightforward prompts. " +
     "'High': deeper reasoning for complex scenes, detailed compositions, or text rendering. " +
-    "Note: 'High' is only supported by 'gemini-3.1-flash-image-preview' (Nano Banana 2). " +
-    "Auto-inference: complex scene or detailed illustration -> 'High'. " +
+    "Note: 'High' is only configurable on 'gemini-3.1-flash-image-preview' (Nano Banana 2). " +
+    "Nano Banana Pro has built-in always-on thinking (do not set 'High' for Pro). " +
+    "Auto-inference: complex scene or detailed illustration -> 'High' (with Nano Banana 2). " +
     "Default: 'minimal'."
   );
 

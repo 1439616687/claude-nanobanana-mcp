@@ -66,26 +66,34 @@ export const SUPPORTED_RESPONSE_FORMATS = ["markdown", "json"] as const;
  * Defines which features are supported by each model.
  * Used by validateParameterCompatibility() in shared-utils.ts.
  */
+/** Aspect ratios supported by Nano Banana Pro (subset of all 14). */
+export const PRO_SUPPORTED_ASPECT_RATIOS: readonly string[] = [
+  "1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9",
+] as const;
+
 export const PARAMETER_COMPATIBILITY: Record<
   string,
   {
     imageSize512: boolean;
-    thinkingHigh: boolean;
+    thinkingConfigurable: boolean;
     imageSearch: boolean;
     maxRefImages: number;
+    allAspectRatios: boolean;
   }
 > = {
   [MODEL_IDS.NANO_BANANA_2]: {
     imageSize512: true,
-    thinkingHigh: true,
+    thinkingConfigurable: true,
     imageSearch: true,
     maxRefImages: 14,
+    allAspectRatios: true,
   },
   [MODEL_IDS.NANO_BANANA_PRO]: {
     imageSize512: false,
-    thinkingHigh: false,
+    thinkingConfigurable: false,
     imageSearch: false,
     maxRefImages: 11,
+    allAspectRatios: false,
   },
 };
 

@@ -45,11 +45,16 @@ function modelFeatures(modelId: string): string[] {
 
   const features: string[] = [];
   if (compat.imageSize512) features.push("512px resolution");
-  if (compat.thinkingHigh) features.push("High thinking level");
+  if (compat.thinkingConfigurable) features.push("Configurable thinking (minimal/High)");
+  if (!compat.thinkingConfigurable) features.push("Built-in always-on thinking");
   if (compat.imageSearch) features.push("Image search grounding");
   features.push(`Up to ${compat.maxRefImages} reference images`);
   features.push("Web search grounding");
-  features.push("All 14 aspect ratios");
+  if (compat.allAspectRatios) {
+    features.push("All 14 aspect ratios");
+  } else {
+    features.push("9 aspect ratios (no extreme ratios)");
+  }
   return features;
 }
 
@@ -88,8 +93,9 @@ export async function handleListOptions(): Promise<ToolResult> {
       if (compat) {
         parameterCompatibility[modelId] = {
           "imageSize_512": compat.imageSize512,
-          "thinkingLevel_High": compat.thinkingHigh,
+          "thinkingConfigurable": compat.thinkingConfigurable,
           "enable_image_search": compat.imageSearch,
+          "allAspectRatios": compat.allAspectRatios,
         };
       }
     }
@@ -164,8 +170,9 @@ export async function handleListOptions(): Promise<ToolResult> {
     if (nb2 && nbPro) {
       const yn = (v: boolean): string => (v ? "Yes" : "No");
       lines.push(`| 512 image size | ${yn(nb2.imageSize512)} | ${yn(nbPro.imageSize512)} |`);
-      lines.push(`| High thinking | ${yn(nb2.thinkingHigh)} | ${yn(nbPro.thinkingHigh)} |`);
+      lines.push(`| Configurable thinking | ${yn(nb2.thinkingConfigurable)} | No (always on) |`);
       lines.push(`| Image search | ${yn(nb2.imageSearch)} | ${yn(nbPro.imageSearch)} |`);
+      lines.push(`| All 14 aspect ratios | ${yn(nb2.allAspectRatios)} | No (9 ratios) |`);
       lines.push(`| Max ref images | ${nb2.maxRefImages} | ${nbPro.maxRefImages} |`);
     }
 

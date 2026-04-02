@@ -5,6 +5,7 @@
 import {
   MODEL_IDS,
   PARAMETER_COMPATIBILITY,
+  PRO_SUPPORTED_ASPECT_RATIOS,
   CHARACTER_LIMIT,
 } from "../constants.js";
 
@@ -30,6 +31,7 @@ import type {
 export function validateParameterCompatibility(
   model: string,
   imageSize: string,
+  aspectRatio: string,
   enableImageSearch: boolean,
   thinkingLevel: string,
 ): ValidationResult {
@@ -53,12 +55,14 @@ export function validateParameterCompatibility(
     };
   }
 
-  // Rule 2: thinkingLevel "High" only supported by Nano Banana 2
-  if (thinkingLevel === "High" && !compat.thinkingHigh) {
+  // Rule 2: thinkingLevel "High" only configurable on Nano Banana 2
+  // Pro has built-in thinking that is always on and not configurable.
+  if (thinkingLevel === "High" && !compat.thinkingConfigurable) {
     return {
       valid: false,
       error:
-        `Thinking level "High" is only supported by Nano Banana 2 (${MODEL_IDS.NANO_BANANA_2}). ` +
+        `Thinking level "High" is only configurable on Nano Banana 2 (${MODEL_IDS.NANO_BANANA_2}). ` +
+        `Nano Banana Pro has built-in thinking that is always active. ` +
         `Either switch to model "${MODEL_IDS.NANO_BANANA_2}" or use thinking level "minimal".`,
     };
   }
@@ -70,6 +74,17 @@ export function validateParameterCompatibility(
       error:
         `Image search grounding is only available with Nano Banana 2 (${MODEL_IDS.NANO_BANANA_2}). ` +
         `Either switch to model "${MODEL_IDS.NANO_BANANA_2}" or disable image search.`,
+    };
+  }
+
+  // Rule 4: Pro only supports 9 aspect ratios (no extreme ratios)
+  if (!compat.allAspectRatios && !PRO_SUPPORTED_ASPECT_RATIOS.includes(aspectRatio)) {
+    return {
+      valid: false,
+      error:
+        `Aspect ratio "${aspectRatio}" is not supported by Nano Banana Pro. ` +
+        `Pro supports: ${PRO_SUPPORTED_ASPECT_RATIOS.join(", ")}. ` +
+        `Either switch to model "${MODEL_IDS.NANO_BANANA_2}" (supports all 14 ratios) or choose a supported ratio.`,
     };
   }
 
@@ -86,6 +101,7 @@ export function validateParameterCompatibility(
  * added only when non-default values are supplied.
  */
 export function buildGenerationConfig(
+  model: string,
   imageSize?: string,
   aspectRatio?: string,
   thinkingLevel?: string,
@@ -106,8 +122,10 @@ export function buildGenerationConfig(
     config.imageConfig = imageConfig;
   }
 
-  // Build thinkingConfig if a non-minimal level is requested
-  if (thinkingLevel && thinkingLevel !== "minimal") {
+  // Build thinkingConfig only for models that support configurable thinking.
+  // Pro has built-in always-on thinking — sending thinkingConfig causes API errors.
+  const compat = PARAMETER_COMPATIBILITY[model];
+  if (compat?.thinkingConfigurable && thinkingLevel && thinkingLevel !== "minimal") {
     const thinkingConfig: ThinkingConfig = {
       thinkingLevel,
       includeThoughts: true,

@@ -58,6 +58,7 @@ export async function handleMultiEditStart(
     const validation = validateParameterCompatibility(
       params.model,
       params.image_size,
+      params.aspect_ratio,
       params.enable_image_search,
       params.thinking_level,
     );
@@ -70,6 +71,7 @@ export async function handleMultiEditStart(
 
     // 2. Build generation config and tools config
     const generationConfig = buildGenerationConfig(
+      params.model,
       params.image_size,
       params.aspect_ratio,
       params.thinking_level,
