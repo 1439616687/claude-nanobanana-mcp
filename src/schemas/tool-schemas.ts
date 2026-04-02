@@ -118,14 +118,19 @@ export const GenerateImageSchema = z
       .max(32000, "Prompt exceeds maximum length")
       .describe(
         "Detailed description of the image to generate. " +
-        "PROMPT OPTIMIZATION: Expand short user requests into rich prompts covering: " +
-        "subject (specific details), scene/setting, lighting (e.g., 'golden hour', 'studio'), " +
-        "style (e.g., 'photorealistic', 'watercolor', '3D render'), " +
-        "composition (e.g., 'close-up', 'wide-angle', 'bird's eye'), " +
-        "mood/atmosphere, camera details for photorealistic (e.g., 'Canon EOS R5, 85mm f/1.4'), " +
-        "and color palette. Example: user says 'a cat' -> expand to " +
-        "'A fluffy orange tabby cat sitting on a sunlit windowsill, warm golden hour lighting, " +
-        "photorealistic style, shallow depth of field, cozy apartment setting, peaceful mood'."
+        "GOLDEN RULE: Describe the scene as a narrative paragraph, NOT a keyword list. " +
+        "The model's core strength is deep language understanding — a descriptive paragraph always produces better results than disconnected words. " +
+        "PROMPT TEMPLATES BY CATEGORY — pick the matching template and fill in the placeholders: " +
+        "Photorealistic: 'A photorealistic [shot type] of [subject], [action/expression], set in [environment]. Illuminated by [lighting], creating a [mood] atmosphere. Captured with a [camera/lens], emphasizing [key textures/details].' " +
+        "Sticker/Icon: 'A [style] sticker of [subject], featuring [characteristics] and a [color palette]. The design has [line style] and [shading]. The background must be white.' (Note: transparent backgrounds are NOT supported.) " +
+        "Product/Commercial: 'A photo of [product] on [surface]. [Lighting description]. [Brand/text integration details]. [Magazine/ad context if applicable].' " +
+        "Infographic/Text: 'Create a [style] infographic explaining [topic] as [creative analogy]. Show [elements]. Style like [reference], suitable for [audience].' " +
+        "Isometric 3D: 'A 45° top-down isometric miniature 3D [style] scene of [location], featuring [landmarks/elements]. Soft refined textures with PBR materials and gentle lighting. [Title text] in bold at top-center.' " +
+        "Scientific/Technical: '[Artist/style reference] style [illustration type] of [subject]. Detailed drawings of [components] on [medium texture] with notes in [language].' " +
+        "Text/Typography: '[Format] with the text \"[exact text]\" in [font style]. [Placement and sizing details]. [Additional design elements].' " +
+        "Nature/Wildlife: 'Use image search to find accurate images of [species]. Create a [ratio] wallpaper of this [subject], with [composition style].' " +
+        "Data Visualization: 'Visualize [real-world data] as a [chart/infographic style]. Add [visual elements].' (Enable search for real-time data.) " +
+        "EXPANSION EXAMPLE: user says 'a cat' -> 'A photorealistic close-up of a fluffy orange tabby cat sitting on a sunlit windowsill, gazing outside with curious green eyes. Warm golden hour light streams through the window, highlighting the fine texture of its fur. Captured with an 85mm portrait lens with soft bokeh background of a cozy apartment. Serene and peaceful mood.'"
       ),
     model: modelField,
     aspect_ratio: aspectRatioField,
@@ -149,12 +154,16 @@ export const EditImageSchema = z
       .max(32000, "Edit instruction exceeds maximum length")
       .describe(
         "Description of how to edit the source image. " +
-        "Be specific about what to change: 'change the background to a beach sunset', " +
-        "'add a party hat to the cat', 'make the colors more vibrant', " +
-        "'remove the person on the left', 'convert to pencil sketch style'. " +
-        "PROMPT OPTIMIZATION: Expand vague instructions into specific edits. " +
-        "Example: 'make it better' -> 'enhance colors, improve lighting contrast, " +
-        "sharpen details, and add subtle warm toning'."
+        "GOLDEN RULE: Describe edits as specific narrative instructions, not keywords. " +
+        "EDIT TEMPLATES: " +
+        "Style transfer: 'Convert this image to a [style] style, with [specific characteristics like brush strokes, color palette, line weight].' " +
+        "Background change: 'Replace the background with [detailed new environment], keeping the [subject] exactly as it is.' " +
+        "Object manipulation: 'Add [object with details] to [position]. It should [interaction with scene].' / 'Remove [object] and fill the area naturally.' " +
+        "Text overlay: 'Add the text \"[exact text]\" in [font style] at [position]. [Color and size details].' " +
+        "Enhancement: 'Enhance [specific aspects]: improve [lighting/color/detail], add [effects like bokeh, vignette], adjust [tone/mood].' " +
+        "Localization: 'Update this [content type] to be in [language]. Do not change any other elements.' " +
+        "Logo/brand integration: 'Place this [element] on [product/context]. The [element] is perfectly integrated into [surface].' " +
+        "EXPANSION EXAMPLE: 'make it better' -> 'Enhance the color vibrancy, improve lighting contrast with warmer tones, sharpen fine details, and add a subtle golden-hour color grading to create a more inviting atmosphere.'"
       ),
     source_image_path: z
       .string()
@@ -189,7 +198,10 @@ export const MultiEditStartSchema = z
         "This can be a text-to-image prompt (if no source_image_path) or an edit instruction " +
         "(if a source image is provided). The session will preserve full conversation history " +
         "for iterative refinement. " +
-        "PROMPT OPTIMIZATION: Same rules as generate — expand into detailed descriptions."
+        "PROMPT OPTIMIZATION: Same golden rule as generate — describe scenes as narrative paragraphs, use the same template patterns. " +
+        "Multi-edit is ideal for: progressive scene building (empty room -> add window -> add furniture -> add lighting), " +
+        "iterative design (logo draft -> refine colors -> adjust text -> finalize), " +
+        "style exploration (generate base -> try sketch -> try watercolor -> try oil painting)."
       ),
     source_image_path: z
       .string()
@@ -276,17 +288,43 @@ export const TOOL_DESCRIPTIONS = {
 
 WHEN TO USE: When the user wants to create a new image from scratch. Trigger words: "draw", "generate", "create", "make an image", "picture of", "illustration of". Do NOT use this if the user provides a source image to edit (use nanobanana_edit_image instead) or wants iterative refinement (use nanobanana_multi_edit_start).
 
-PROMPT OPTIMIZATION: Always expand short user requests into detailed prompts. Cover: subject (with specifics), scene/setting, lighting, artistic style, composition, mood/atmosphere, and camera details for photorealistic images. Example: "a dog" -> "A golden retriever puppy playing in a field of wildflowers, soft afternoon sunlight, photorealistic, shallow depth of field, joyful and energetic mood, shot with a 50mm lens".
+GOLDEN RULE (from Google): "Describe the scene, don't just list keywords. The model's core strength is its deep language understanding. A narrative, descriptive paragraph will almost always produce a better, more coherent image than a list of disconnected words."
+
+PROMPT STRATEGY — Always expand short user requests using this structure:
+1. Subject: What is the main subject? Add specificity (species, material, emotion, pose).
+2. Setting/Environment: Where? Indoor/outdoor, time of day, weather, surroundings.
+3. Lighting: Golden hour, studio, dramatic, soft diffused, neon, backlit, rim light.
+4. Style: photorealistic, watercolor, oil painting, anime, 3D render, isometric, kawaii, Da Vinci sketch, cel-shading.
+5. Composition: close-up, wide-angle, aerial, 45° isometric, overhead shot, bird's eye.
+6. Mood: serene, dramatic, joyful, mysterious, nostalgic, energetic.
+7. Camera (for photorealism): lens (85mm f/1.4, 50mm), depth of field (bokeh), shot type.
+8. Color palette: warm earth tones, neon cyberpunk, pastel, monochrome, complementary.
+9. Text (if needed): exact text in quotes, font style, placement, size.
+
+REFERENCE PROMPTS FROM GOOGLE:
+- Portrait: "A photorealistic close-up portrait of an elderly Japanese ceramicist with deep, sun-etched wrinkles and a warm, knowing smile. He is carefully inspecting a freshly glazed tea bowl. Set in his rustic, sun-drenched workshop. Illuminated by soft, golden hour light streaming through a window. Captured with an 85mm portrait lens with soft bokeh. Serene and masterful mood."
+- Sticker: "A kawaii-style sticker of a happy red panda wearing a tiny bamboo hat, munching on a green bamboo leaf. Bold, clean outlines, simple cel-shading, vibrant color palette. The background must be white."
+- Product: "A photo of a glossy magazine cover with the large bold words 'Nano Banana' in serif font. A portrait of a person in a sleek dress, playfully holding the number 2. Issue number and date in the corner with a barcode. The magazine is on a shelf against an orange plastered wall."
+- Isometric: "A clear, 45° top-down isometric miniature 3D cartoon scene of London, featuring iconic landmarks. Soft, refined textures with PBR materials and gentle lifelike lighting. Title 'London' in large bold text at top-center, weather icon beneath, then date and temperature."
+- Scientific: "Da Vinci style anatomical sketch of a dissected Monarch butterfly. Detailed drawings of the head, wings, and legs on textured parchment with notes in English."
+- Data: "Visualize the current weather forecast for the next 5 days in San Francisco as a clean, modern weather chart. Add a visual on what I should wear each day." (with enable_search: true)
+
+IMPORTANT NOTES:
+- Transparent backgrounds are NOT supported — specify "white background" or a solid color.
+- For text rendering, be explicit about exact text, font, placement, and size.
+- For stickers/icons, always specify "background must be white" and include line/shading style.
 
 AUTO-INFERENCE RULES:
 - Phone wallpaper -> aspect_ratio: "9:16"
 - Desktop wallpaper -> aspect_ratio: "16:9"
-- Print poster / high-res -> image_size: "4K", model: "gemini-3-pro-image-preview"
-- Quick draft / thumbnail -> image_size: "512"
-- Real-world data needed -> enable_search: true
-- Complex scene -> thinking_level: "High"
+- YouTube thumbnail -> aspect_ratio: "16:9", image_size: "2K"
 - Instagram post -> aspect_ratio: "4:5"
 - Logo / icon / avatar -> aspect_ratio: "1:1"
+- Print poster / high-res -> image_size: "4K"
+- Quick draft / thumbnail -> image_size: "512"
+- Real-world data / real places / current events -> enable_search: true
+- Visual style reference / species accuracy -> enable_image_search: true
+- Complex scene / detailed composition / text rendering -> thinking_level: "High" (NB2 only)
 
 Returns: The saved image file path and any text the model generated alongside the image.`,
 
@@ -294,7 +332,22 @@ Returns: The saved image file path and any text the model generated alongside th
 
 WHEN TO USE: When the user provides a specific source image file and wants to modify it. The user must provide both an image path and an edit instruction. Do NOT use this for creating images from scratch (use nanobanana_generate_image) or for iterative multi-step editing (use nanobanana_multi_edit_start).
 
-PROMPT OPTIMIZATION: Be specific about edits. Expand vague requests: "make it better" -> "enhance color vibrancy, improve lighting contrast, sharpen fine details, and apply subtle warm color grading".
+GOLDEN RULE: Describe edits as specific narrative instructions. Expand vague requests into detailed, actionable descriptions.
+
+EDIT STRATEGIES:
+- Style transfer: "Convert this to [style] with [specific characteristics]" — e.g., "pencil sketch with cross-hatching", "watercolor with soft bleeding edges", "oil painting with thick impasto brush strokes"
+- Background change: "Replace the background with [detailed environment], keeping the [subject] unchanged"
+- Object add/remove: "Add [specific object] at [position]" / "Remove [object] and fill naturally"
+- Text overlay: "Add the text '[exact text]' in [font] at [position]"
+- Enhancement: "Enhance [specific aspects]: improve [what], add [effects], adjust [tone]"
+- Localization: "Update this to be in [language]. Do not change any other elements."
+- Brand integration: "Put this logo on [product/context]. The logo is perfectly integrated into [surface]."
+- Aspect ratio change: "Expand the scene to [wider/taller] composition showing [new elements]"
+
+REFERENCE EDIT PROMPTS FROM GOOGLE:
+- Brand: "Put this logo on a high-end ad for a banana scented perfume. The logo is perfectly integrated into the bottle."
+- Localize: "Update this infographic to be in Spanish. Do not change any other elements of the image."
+- Style mashup: "Make one person a pencil sketch, another claymation, keep the rest photorealistic."
 
 AUTO-INFERENCE RULES: Same as generate_image for model, aspect_ratio, image_size, thinking_level, and search settings.
 
