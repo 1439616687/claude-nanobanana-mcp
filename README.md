@@ -218,6 +218,8 @@ Claude automatically selects optimal parameters from context — you don't need 
 
 ### Prompt Templates
 
+> Templates sourced from [Google's official Gemini image generation documentation](https://ai.google.dev/gemini-api/docs/image-generation).
+
 Claude has built-in templates for common categories. You can also use these directly:
 
 **Photorealistic:**
